@@ -1,0 +1,26 @@
+# Transcripción de Boletas - Reportes Diarios
+# OCR y procesamiento de imágenes manuscritas/imprenta
+
+# Para GPU (CUDA): instalar PyTorch con CUDA ANTES de easyocr:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+#   (cu118 = CUDA 11.8, cu121 = CUDA 12.1 - ver https://pytorch.org)
+
+# OCR principal - soporta manuscrito en español
+easyocr>=1.7.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Preprocesamiento de imágenes (mejora precisión manuscrita)
+opencv-python-headless>=4.8.0
+scikit-image>=0.21.0
+
+# Exportación Excel según plantilla
+openpyxl>=3.1.0
+pandas>=2.0.0
+
+# Utilidades
+python-dotenv>=1.0.0
+tqdm>=4.65.0
+
+# Opcional: OCR vía Celery (--ocr-celery)
+celery>=5.0.0

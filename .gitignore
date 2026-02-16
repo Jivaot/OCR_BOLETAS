@@ -1,0 +1,34 @@
+# Entornos virtuales
+venv/
+.env/
+OCR/
+.conda/
+ocr/
+
+# Archivos compilados
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos temporales
+*.log
+*.tmp
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Configuración IDE
+.vscode/
+.idea/
+
+# Archivos grandes / modelos
+*.pdmodel
+*.pdiparams
+*.onnx
+*.bin
+
+# Datos locales
+data/
+output/
