@@ -34,20 +34,55 @@ CAMPOS_BOLETA = [
 
 # Etiquetas impresas que preceden cada campo (para asociar texto OCR)
 ETIQUETAS_CAMPOS = {
-    "numero_reporte": ["N°", "Nº", "N."],
-    "camion": ["Camión:", "Camion:"],
-    "patente": ["Patente:"],
-    "operador": ["Operador:"],
-    "obra": ["Obra:"],
-    "tipo_faena": ["Tipo de Faena:", "Tipo Faena:"],
-    "horarios": ["Horarios:"],
-    "observaciones": ["Observaciones:"],
+    "numero_reporte": ["N°", "Nº", "N.", "N° Report", "N° REPORT"],
+    "camion": ["Camión:", "Camion:", "Maquinaria:", "Servicio:", "Equipo:"],
+    "patente": ["Patente:", "PATENTE"],
+    "operador": ["Operador:", "Operario:", "Nombre y Firma Operador"],
+    "obra": ["Obra:", "Empresa:", "Proveedor:", "Faena:"],
+    "tipo_faena": ["Tipo de Faena:", "Tipo Faena:", "Actividad desarrollada:", "Rol Camino"],
+    "horarios": ["Horarios:", "Mañana", "Tarde", "Inicial", "Final"],
+    "observaciones": ["Observaciones:", "OBSERVACIONES"],
 }
 
 # Hojas de la plantilla - nombres exactos del documento Excel
 HOJA_MAQUINARIAS = "SEGUIMIENTO MAQUINARIAS"
 HOJA_ARIDOS = "SEGUIMIENTO_ARIDOS"
 HOJA_MOV_TIERRA = "SEGUIMIENTO_MOV. TIERRA"
+
+# Tipos de boleta (clasificación por encabezado OCR)
+TIPO_MAQUINARIA = "maquinaria"
+TIPO_ARIDOS = "aridos"
+TIPO_MOV_TIERRA = "mov_tierra"
+TIPO_DESCONOCIDO = "desconocido"
+
+BOLETA_TIPO_HOJA = {
+    TIPO_MAQUINARIA: HOJA_MAQUINARIAS,
+    TIPO_ARIDOS: HOJA_ARIDOS,
+    TIPO_MOV_TIERRA: HOJA_MOV_TIERRA,
+}
+
+# Palabras clave para detectar el formato de boleta.
+# Se evalúan sobre texto OCR normalizado (sin acentos, minúsculas).
+BOLETA_TIPO_KEYWORDS = {
+    TIPO_MAQUINARIA: [
+        "reporte diario",
+        "agroindustrial",
+        "transporte y arriendo",
+        "horas minimas",
+    ],
+    TIPO_ARIDOS: [
+        "aridos",
+        "carga",
+        "camion tolva",
+        "m3",
+    ],
+    TIPO_MOV_TIERRA: [
+        "asfaltos del maule",
+        "reporte diario de maquinaria",
+        "actividad desarrollada",
+        "rol camino",
+    ],
+}
 
 # Columnas de cada hoja en la plantilla (orden B a K para Maquinarias)
 COLUMNAS_MAQUINARIAS = [
@@ -87,9 +122,14 @@ OCR_CONFIG = {
     "min_confidence": 0.1,
     "width_ths": 0.7,
     # Preprocesamiento: raw | contraste | hibrido | binario | auto
-    "preproc_mode": "raw",
+    "preproc_mode": "auto",
     "preproc_try_modes": ["raw", "contraste", "hibrido", "binario"],
+    # Rotaciones a probar para robustez en fotos invertidas
+    "ocr_rotations": [0, 180],
     # Etiquetas con OCR imperfecto
     "fuzzy_labels": True,
     "fuzzy_threshold": 0.78,
 }
+
+# Umbral mínimo para registrar una boleta en salida
+MIN_CONFIANZA_BOLETA = 0.20
