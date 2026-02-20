@@ -12,6 +12,8 @@ from config import (
     OUTPUT_DIR,
     HOJA_MAQUINARIAS,
     COLUMNAS_MAQUINARIAS,
+    BOLETA_TIPO_HOJA,
+    TIPO_DESCONOCIDO,
 )
 
 
@@ -72,6 +74,20 @@ def _boleta_a_fila_maquinarias(b: BoletaTranscrita) -> list:
     ]
 
 
+
+def _escribir_bloque_en_hoja(ws, boletas: list[BoletaTranscrita], col_inicio: int = 2) -> None:
+    """Escribe una lista de boletas al final de una hoja existente."""
+    fila_inicio = 9
+    for row in range(9, min(ws.max_row + 2, 6000)):
+        if ws.cell(row=row, column=col_inicio).value is not None:
+            fila_inicio = row + 1
+
+    for i, b in enumerate(boletas):
+        fila = fila_inicio + i
+        valores = _boleta_a_fila_maquinarias(b)
+        for col_idx, valor in enumerate(valores):
+            ws.cell(row=fila, column=col_inicio + col_idx, value=valor)
+
 def exportar_a_excel(
     boletas: list[BoletaTranscrita],
     ruta_salida: Path | None = None,
@@ -101,21 +117,16 @@ def exportar_a_excel(
                 f"Hojas disponibles: {wb.sheetnames}"
             )
 
-        ws = wb[hoja]
+        boletas_por_hoja: dict[str, list[BoletaTranscrita]] = {}
+        for b in boletas:
+            hoja_tipo = BOLETA_TIPO_HOJA.get(b.tipo_boleta or TIPO_DESCONOCIDO, hoja)
+            if hoja_tipo not in wb.sheetnames:
+                hoja_tipo = hoja
+            boletas_por_hoja.setdefault(hoja_tipo, []).append(b)
 
-        # Hoja SEGUIMIENTO MAQUINARIAS: encabezados en fila 8, datos desde fila 9
-        # Buscar última fila con datos (col B) para añadir las transcripciones después
-        fila_inicio = 9
-        col_inicio = 2
-        for row in range(9, min(ws.max_row + 2, 600)):
-            if ws.cell(row=row, column=col_inicio).value is not None:
-                fila_inicio = row + 1
-
-        for i, b in enumerate(boletas):
-            fila = fila_inicio + i
-            valores = _boleta_a_fila_maquinarias(b)
-            for col_idx, valor in enumerate(valores):
-                ws.cell(row=fila, column=col_inicio + col_idx, value=valor)
+        for nombre_hoja, lote in boletas_por_hoja.items():
+            ws = wb[nombre_hoja]
+            _escribir_bloque_en_hoja(ws, lote, col_inicio=2)
 
         wb.save(ruta_salida)
         return ruta_salida

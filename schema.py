@@ -3,6 +3,7 @@ Esquema de datos para boletas transcritas.
 Define la estructura y validaciones para evitar datos inconsistentes.
 """
 from dataclasses import dataclass, field
+import re
 from typing import Optional
 from datetime import date
 
@@ -24,6 +25,7 @@ class BoletaTranscrita:
     tipo_faena: Optional[str] = None
     horarios: Optional[str] = None
     observaciones: Optional[str] = None
+    tipo_boleta: Optional[str] = None
     
     imagen_origen: Optional[str] = None
     confianza_promedio: float = 0.0
@@ -65,13 +67,17 @@ class BoletaTranscrita:
             "Tipo de Faena": self.tipo_faena or "",
             "Horarios": self.horarios or "",
             "Observaciones": self.observaciones or "",
+            "Tipo Boleta": self.tipo_boleta or "",
             "Imagen Origen": self.imagen_origen or "",
             "Confianza Promedio": round(self.confianza_promedio, 2),
         }
     
     def es_valida(self) -> bool:
         """Mínimos requeridos para considerar la boleta válida."""
-        return bool(
-            (self.numero_reporte or self.patente) and
-            (self.camion or self.obra or self.operador)
+        tiene_reporte = bool(self.numero_reporte and re.fullmatch(r"\d{3,7}", str(self.numero_reporte).strip()))
+        tiene_identificador = bool(self.patente and len(self.patente.strip()) >= 5)
+        contexto_operacion = any(
+            v and len(str(v).strip()) >= 3
+            for v in (self.camion, self.obra, self.operador)
         )
+        return bool((tiene_reporte or tiene_identificador) and contexto_operacion)

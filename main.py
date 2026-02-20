@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from tqdm import tqdm
 
-from config import IMAGENES_DIR, EXTENSIONES_IMAGEN, OUTPUT_DIR
+from config import IMAGENES_DIR, EXTENSIONES_IMAGEN, OUTPUT_DIR, MIN_CONFIANZA_BOLETA
 from ocr_engine import transcribir_boleta, _inicializar_easyocr
 from schema import BoletaTranscrita
 from deduplicador import Deduplicador
@@ -75,13 +75,19 @@ def ejecutar_pipeline(
         try:
             b = transcribir_boleta(ruta, reader=reader, modo_preproc=modo_preproc)
             b.imagen_origen = ruta.name
-            if b.es_valida():
+            es_valida = b.es_valida()
+            if es_valida and b.confianza_promedio >= MIN_CONFIANZA_BOLETA:
                 boletas.append(b)
-                info = f"N°{b.numero_reporte or '-'} | Patente:{b.patente or '-'} | Operador:{b.operador or '-'} | Camion:{b.camion or '-'}"
+                info = f"Tipo:{b.tipo_boleta or '-'} | N°{b.numero_reporte or '-'} | Patente:{b.patente or '-'} | Operador:{b.operador or '-'} | Camion:{b.camion or '-'} | Conf:{b.confianza_promedio:.2f}"
                 with open(log_file, "a", encoding="utf-8") as f:
                     f.write(f"[{ruta.name}] → {info}\n")
                 if verbose:
                     tqdm.write(f"  [{ruta.name[:35]}...] → {info}")
+            else:
+                with open(log_file, "a", encoding="utf-8") as f:
+                    f.write(
+                        f"[DESCARTADA {ruta.name}] valida={es_valida} conf={b.confianza_promedio:.2f} tipo={b.tipo_boleta or '-'}\n"
+                    )
         except Exception as e:
             errores.append((ruta.name, str(e)))
             with open(log_file, "a", encoding="utf-8") as f:
